@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ..abstractions.status_tracker import StatusTracker
 
-STAGES = ("prepare", "extract", "cache", "excel")
+STAGES = ("prepare", "extract", "cache", "json_output")
 
 
 class JsonStatusTracker(StatusTracker):

@@ -2,13 +2,13 @@
 
 ## Project Overview
 
-Payroll control tool: extract data from scanned documents (PDF/PNG) via LLM, structure it, and map to Excel. Built with a generic pipeline — new document types ("features") are added without changing existing code.
+Payroll control tool: extract data from scanned documents (PDF/PNG) via LLM, structure it, and output as JSON. Built with a generic pipeline — new document types ("features") are added without changing existing code.
 
 ## Architecture
 
 - **abstractions/**: 7 ABCs defining all contracts
 - **core/**: Business logic (FeaturePipeline, FeatureRegistry) — imports only from abstractions/
-- **implementations/**: Concrete classes (Gemini, xlwings, file cache, etc.)
+- **implementations/**: Concrete classes (Gemini, image processing, file cache, etc.)
 - **features/<name>/**: Self-contained feature subpackages (prompt, model, extractor, mapper, register)
 - **factories/**: Wires everything together
 - **config/**: Settings and pricing constants
@@ -22,6 +22,15 @@ run.py → factories/ → implementations/ → abstractions/
 ```
 
 **core/ and features/ NEVER import from implementations/**
+
+## Image Preparation Pipeline
+
+PDF pages go through this pipeline before LLM extraction:
+
+1. **PdfToImageConverter** — renders each PDF page to PNG at 300 DPI
+2. **PageRotator** — detects and corrects rotation (landscape pages, sideways content in portrait pages)
+3. **PageDeskewer** — corrects small skew angles from diagonal scanning
+4. **ImageEnhancer** — increases contrast and sharpness for faint handwriting
 
 ## Adding a New Feature
 
@@ -38,10 +47,13 @@ Then add the registration call in `factories/factory.py:bootstrap()`.
 
 - Run tests: `python -m pytest tests/ -v`
 - CLI help: `python run.py --help`
-- Run a feature: `python run.py <feature_name> <input_files...> [-o output.xlsx]`
+- Run a feature: `python run.py <feature_name> <input_files...> [-o output.json]`
 
 ## Conventions
 
 - All dependencies are injected — never instantiate concrete classes in business logic
 - Tests use mocks/fakes — no real API calls
 - Config constants live in `config/settings.py` and `config/pricing.py`
+- Pipeline outputs JSON; Excel mapping is a future separate step
+- Raw LLM responses are saved to `cache/fallback/` before any post-processing
+- Cost logging is non-fatal — failures are warned but don't crash the pipeline

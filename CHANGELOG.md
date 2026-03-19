@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0 — 2026-03-20
+
+### Added
+- Attendance feature: extract employee attendance records from scanned PDFs
+- Image preprocessing pipeline: PageRotator (sideways detection), PageDeskewer (skew correction), ImageEnhancer (contrast/sharpness)
+- Fallback response saving in GeminiModel to prevent data loss
+- Non-fatal cost logging (continues on failure)
+- Debug page saving for visual inspection of preprocessed images
+
+### Changed
+- Pipeline outputs JSON instead of Excel (Excel mapping is a future step)
+- Upgraded to gemini-3.1-pro-preview model
+- PageRotator rewritten with variance-based sideways content detection
+
 ## 0.1.0 — 2026-03-16
 
 ### Added

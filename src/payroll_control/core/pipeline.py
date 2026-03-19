@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from ..abstractions.cache_manager import CacheManager
@@ -23,14 +24,16 @@ class FeaturePipeline:
         file_key = self._feature.name
 
         if self._status.is_complete(file_key):
-            print(f"[{file_key}] All stages complete — skipping.")
+            print(f"[{file_key}] All stages complete -- skipping.")
             return output_path
 
         records = self._try_load_from_cache(file_key)
         if records is None:
             records = self._extract(input_files, file_key)
 
-        return self._write_excel(records, output_path, file_key)
+        json_path = self._write_json(records, output_path, file_key)
+        self._status.set_status(file_key, "json_output", "success")
+        return json_path
 
     def _try_load_from_cache(self, file_key: str) -> list[dict] | None:
         if not self._cache.has_cache(file_key):
@@ -57,6 +60,7 @@ class FeaturePipeline:
     def _extract(self, input_files: list[Path], file_key: str) -> list[dict]:
         print(f"[{file_key}] Preparing files...")
         prepared = self._preparation.prepare(input_files)
+        self._save_debug_pages(prepared, file_key)
         self._status.set_status(file_key, "prepare", "success")
 
         print(f"[{file_key}] Extracting data from {len(prepared)} prepared file(s)...")
@@ -72,13 +76,22 @@ class FeaturePipeline:
         print(f"[{file_key}] Cached {len(records)} record(s).")
         return records
 
-    def _write_excel(self, records: list[dict], output_path: Path, file_key: str) -> Path:
-        print(f"[{file_key}] Writing {len(records)} record(s) to Excel...")
-        try:
-            result_path = self._feature.mapper.write(records, output_path)
-            self._status.set_status(file_key, "excel", "success")
-            print(f"[{file_key}] Done → {result_path}")
-            return result_path
-        except Exception as e:
-            self._status.set_status(file_key, "excel", f"failed: {e}")
-            raise
+    def _save_debug_pages(self, prepared: list, file_key: str) -> None:
+        debug_dir = Path("cache/debug_pages")
+        if not debug_dir.exists():
+            return
+        for pf in prepared:
+            page = pf.page_index if pf.page_index is not None else 0
+            path = debug_dir / f"{file_key}_page_{page + 1:03d}.png"
+            path.write_bytes(pf.data)
+        print(f"[{file_key}] Saved {len(prepared)} debug PNGs to {debug_dir}")
+
+    def _write_json(self, records: list[dict], output_path: Path, file_key: str) -> Path:
+        json_path = output_path.with_suffix(".json")
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        json_path.write_text(
+            json.dumps(records, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        print(f"[{file_key}] Saved {len(records)} record(s) -> {json_path}")
+        return json_path

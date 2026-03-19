@@ -15,5 +15,7 @@ cache/
 output/
 *.xlsx
 !tests/fixtures/*.xlsx
+status.json
+.claude/
 .pytest_cache/
 .mypy_cache/

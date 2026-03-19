@@ -47,7 +47,7 @@ class CsvCostLogger(CostLogger):
         self._call_count += 1
 
         tier_label = f" [{tier}]" if tier else ""
-        print(f"[cost] {model}{tier_label}: {input_tokens:,} in + {output_tokens:,} out = ${cost_usd:.4f} (₪{cost_ils:.3f})")
+        print(f"[cost] {model}{tier_label}: {input_tokens:,} in + {output_tokens:,} out = ${cost_usd:.4f} (ILS {cost_ils:.3f})")
 
         with open(self._log_path, "a", newline="", encoding="utf-8") as f:
             csv.writer(f).writerow([
@@ -58,4 +58,34 @@ class CsvCostLogger(CostLogger):
 
     def summary(self) -> None:
         total_ils = self._total_usd * USD_TO_ILS
-        print(f"[cost] ── session total: ${self._total_usd:.4f} (₪{total_ils:.3f}) across {self._call_count} call(s) ──")
+        print(f"[cost] -- session total: ${self._total_usd:.4f} (ILS {total_ils:.3f}) across {self._call_count} call(s) --")
+
+    def history(self, last: int | None = None) -> None:
+        if not self._log_path.exists():
+            print("No cost log found.")
+            return
+
+        with open(self._log_path, newline="", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+
+        if not rows:
+            print("Cost log is empty.")
+            return
+
+        if last is not None:
+            rows = rows[-last:]
+
+        total_usd = sum(float(r["cost_usd"]) for r in rows)
+        total_ils = total_usd * USD_TO_ILS
+
+        col_w = [19, 20, 8, 14, 15, 10, 10]
+        header = _CSV_HEADERS
+        sep = "-" * (sum(col_w) + len(col_w) * 3 + 1)
+
+        print(sep)
+        print("  ".join(h.ljust(w) for h, w in zip(header, col_w)))
+        print(sep)
+        for r in rows:
+            print("  ".join(str(r[h]).ljust(w) for h, w in zip(header, col_w)))
+        print(sep)
+        print(f"  Total: {len(rows)} call(s)   ${total_usd:.4f}   ILS {total_ils:.3f}")

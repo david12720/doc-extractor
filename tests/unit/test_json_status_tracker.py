@@ -18,7 +18,7 @@ def test_is_complete(tmp_path: Path):
     tracker = JsonStatusTracker(tmp_path / "status.json")
     assert not tracker.is_complete("file1")
 
-    for stage in ("prepare", "extract", "cache", "excel"):
+    for stage in ("prepare", "extract", "cache", "json_output"):
         tracker.set_status("file1", stage, "success")
 
     assert tracker.is_complete("file1")

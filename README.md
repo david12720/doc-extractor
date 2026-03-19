@@ -1,6 +1,6 @@
 # PaytollControl
 
-Extract payroll data from scanned documents (PDF/PNG) via LLM and map to Excel.
+Extract payroll data from scanned documents (PDF/PNG) via LLM, output structured JSON.
 
 ## Setup
 
@@ -12,9 +12,9 @@ export GEMINI_API_KEY=your_key_here
 ## Usage
 
 ```bash
-python run.py <feature> <input_files...> [-o output.xlsx] [-w work_dir]
+python run.py <feature> <input_files...> [-o output.json] [-w work_dir]
 python run.py --list-features dummy  # list available features
-python run.py placeholder invoice.pdf -o result.xlsx
+python run.py attendance scanned_doc.pdf -o result.json
 ```
 
 ## Tests

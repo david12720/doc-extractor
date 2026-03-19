@@ -1,10 +1,9 @@
-"""Integration test: full pipeline with mocked LLM and mocked Excel mapper.
+"""Integration test: full pipeline with mocked LLM.
 
-Verifies: prepare → extract (mocked) → cache → Excel → resume skips LLM.
+Verifies: prepare -> extract (mocked) -> cache -> JSON output -> resume skips LLM.
 """
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -61,13 +60,7 @@ class FakeExtractor(DataExtractor):
 
 
 class FakeMapper(ExcelMapper):
-    def __init__(self):
-        self.written_records: list[dict] = []
-
     def write(self, records: list[dict], output_path: Path) -> Path:
-        self.written_records = records
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(records, ensure_ascii=False))
         return output_path
 
 
@@ -83,8 +76,9 @@ def work_dir(tmp_path: Path) -> Path:
     return tmp_path / "work"
 
 
-def _build_pipeline(work_dir: Path, llm: FakeLLM, mapper: FakeMapper) -> FeaturePipeline:
+def _build_pipeline(work_dir: Path, llm: FakeLLM) -> FeaturePipeline:
     extractor = FakeExtractor(llm)
+    mapper = FakeMapper()
     config = FeatureConfig(name="test_feature", extractor=extractor, mapper=mapper)
     FeatureRegistry.register(config)
 
@@ -101,22 +95,23 @@ def _build_pipeline(work_dir: Path, llm: FakeLLM, mapper: FakeMapper) -> Feature
     )
 
 
-def test_full_pipeline_extract_cache_excel(work_dir: Path, tmp_path: Path):
+def test_full_pipeline_extract_cache_json(work_dir: Path, tmp_path: Path):
     llm = FakeLLM()
-    mapper = FakeMapper()
-    pipeline = _build_pipeline(work_dir, llm, mapper)
+    pipeline = _build_pipeline(work_dir, llm)
 
     input_file = tmp_path / "input.pdf"
     input_file.write_bytes(b"fake pdf")
-    output_path = work_dir / "output" / "result.xlsx"
+    output_path = work_dir / "output" / "result.json"
 
     result = pipeline.run([input_file], output_path)
 
     assert result == output_path
     assert output_path.exists()
     assert llm.call_count == 1
-    assert len(mapper.written_records) == 1
-    assert mapper.written_records[0]["employee_name"] == "Test User"
+
+    saved = json.loads(output_path.read_text(encoding="utf-8"))
+    assert len(saved) == 1
+    assert saved[0]["employee_name"] == "Test User"
 
     # Verify cache was created
     cache_dir = work_dir / "cache" / "test_feature"
@@ -129,21 +124,19 @@ def test_full_pipeline_extract_cache_excel(work_dir: Path, tmp_path: Path):
 
 def test_resume_skips_llm(work_dir: Path, tmp_path: Path):
     llm = FakeLLM()
-    mapper = FakeMapper()
-    pipeline = _build_pipeline(work_dir, llm, mapper)
+    pipeline = _build_pipeline(work_dir, llm)
 
     input_file = tmp_path / "input.pdf"
     input_file.write_bytes(b"fake pdf")
-    output_path = work_dir / "output" / "result.xlsx"
+    output_path = work_dir / "output" / "result.json"
 
-    # First run — LLM is called
+    # First run -- LLM is called
     pipeline.run([input_file], output_path)
     assert llm.call_count == 1
 
-    # Second run — rebuild pipeline (simulates new process), LLM should be skipped
+    # Second run -- rebuild pipeline (simulates new process), LLM should be skipped
     llm2 = FakeLLM()
-    mapper2 = FakeMapper()
-    pipeline2 = _build_pipeline(work_dir, llm2, mapper2)
+    pipeline2 = _build_pipeline(work_dir, llm2)
     pipeline2.run([input_file], output_path)
 
-    assert llm2.call_count == 0  # LLM not called — loaded from cache
+    assert llm2.call_count == 0  # LLM not called -- loaded from cache

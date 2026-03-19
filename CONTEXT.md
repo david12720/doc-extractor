@@ -17,10 +17,16 @@ Each feature is a self-contained directory with 5 files. This colocation makes f
 - `implementations/` depend on `abstractions/` + external libraries
 - `factories/` is the only place that knows about concrete classes
 
-### 4. xlwings over openpyxl
-xlwings uses Excel's COM engine — preserves all existing styles, charts, and formatting. Requires Excel installed (Windows only for now).
+### 4. JSON intermediate output
+Pipeline outputs JSON, not Excel. This avoids file-locking issues and makes the extracted data portable. Excel mapping is a separate future step.
 
-### 5. File-based cache and status
+### 5. Image preprocessing pipeline
+Scanned PDFs go through: PDF→PNG (300 DPI) → Rotate (sideways detection via row/col variance) → Deskew (angle sweep -5° to +5°) → Enhance (contrast 4.0, sharpness 2.0). This chain dramatically improves LLM accuracy on faint handwriting.
+
+### 6. Fallback response saving
+Raw LLM responses are saved to `cache/fallback/` before any post-processing. This prevents data loss if downstream steps fail.
+
+### 7. File-based cache and status
 Simple JSON/text files for cache and status. No database needed. Enables resume capability — if a run crashes, re-running skips completed stages.
 
 ## Extension guide
