@@ -8,6 +8,7 @@ from ..core.feature_registry import ExcelFeatureConfig, FeatureConfig, FeatureRe
 from ..core.pipeline import FeaturePipeline
 from ..features.attendance.register import register as register_attendance
 from ..features.excel_attendance.register import register as register_excel_attendance
+from ..features.payslip.register import register as register_payslip
 from ..features.placeholder.register import register as register_placeholder
 from ..implementations.csv_cost_logger import CsvCostLogger
 from ..implementations.file_cache_manager import FileCacheManager
@@ -39,6 +40,7 @@ def bootstrap(work_dir: Path) -> None:
     base_mapper = XlwingsMapper()
 
     register_attendance(language_model=_llm, base_mapper=base_mapper)
+    register_payslip(language_model=_llm, base_mapper=base_mapper)
     register_placeholder(language_model=_llm, base_mapper=base_mapper)
     register_excel_attendance()
 
