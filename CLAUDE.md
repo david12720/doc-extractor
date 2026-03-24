@@ -83,6 +83,7 @@ The core PDF-to-JSON pipeline (preprocessing, chunking, LLM calls, caching, fall
 | `attendance` | PDF | Scanned attendance sheets | Extracts daily entry/exit times per employee |
 | `payslip` | PDF | Scanned payslips | Extracts hours breakdown, wages, gross/net salary |
 | `pension` | PDF | Pension deposit reports | Extracts deposit history per insured person |
+| `employment_contract` | PDF | Scanned employment contracts | Extracts contract terms: work schedule, payment type, overtime |
 | `excel_attendance` | Excel | Attendance workbooks | LLM-detected schema, extracts times + person ID |
 
 ## Cache & Status Keys

@@ -11,6 +11,7 @@ from ..features.excel_attendance.register import register as register_excel_atte
 from ..features.payslip.register import register as register_payslip
 from ..features.placeholder.register import register as register_placeholder
 from ..features.pension.register import register as register_pension
+from ..features.employment_contract.register import register as register_employment_contract
 from ..implementations.csv_cost_logger import CsvCostLogger
 from ..implementations.file_cache_manager import FileCacheManager
 from ..implementations.gemini_model import GeminiModel
@@ -44,6 +45,7 @@ def bootstrap(work_dir: Path) -> None:
     register_payslip(language_model=_llm, base_mapper=base_mapper)
     register_placeholder(language_model=_llm, base_mapper=base_mapper)
     register_pension(language_model=_llm, base_mapper=base_mapper)
+    register_employment_contract(language_model=_llm, base_mapper=base_mapper)
     register_excel_attendance()
 
 

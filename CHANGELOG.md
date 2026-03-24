@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 — 2026-03-24
+
+### Added
+- Employment contract feature: extract contract terms from scanned Hebrew employment contracts (employee info, work schedule, payment type, overtime threshold, rest day)
+
 ## 0.4.0 — 2026-03-24
 
 ### Added
