@@ -1,8 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 from ..abstractions.data_extractor import DataExtractor
 from ..abstractions.excel_mapper import ExcelMapper
+from ..abstractions.file_preparator import PreparationStep
 from ..abstractions.schema_detector import ColumnMapping
 
 
@@ -11,6 +12,8 @@ class FeatureConfig:
     name: str
     extractor: DataExtractor
     mapper: ExcelMapper
+    preparation_steps: list[PreparationStep] | None = field(default=None)
+    raw_pdf: bool = False
 
 
 @dataclass(frozen=True)

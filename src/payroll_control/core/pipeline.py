@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 from ..abstractions.cache_manager import CacheManager
-from ..abstractions.file_preparator import PreparationPipeline
+from ..abstractions.file_preparator import PreparedFile, PreparationPipeline
 from ..abstractions.status_tracker import StatusTracker
 from .feature_registry import FeatureConfig
 from .file_key import build_file_key
@@ -59,12 +59,40 @@ class FeaturePipeline:
         return None
 
     def _extract(self, input_files: list[Path], file_key: str) -> list[dict]:
+        if self._feature.raw_pdf:
+            return self._extract_raw_pdf(input_files, file_key)
+
         print(f"[{file_key}] Preparing files...")
         prepared = self._preparation.prepare(input_files)
         self._save_debug_pages(prepared, file_key)
         self._status.set_status(file_key, "prepare", "success")
 
         print(f"[{file_key}] Extracting data from {len(prepared)} prepared file(s)...")
+        try:
+            records = self._feature.extractor.extract(prepared)
+            self._status.set_status(file_key, "extract", "success")
+        except Exception as e:
+            self._status.set_status(file_key, "extract", f"failed: {e}")
+            raise
+
+        self._cache.save_json(file_key, records)
+        self._status.set_status(file_key, "cache", "success")
+        print(f"[{file_key}] Cached {len(records)} record(s).")
+        return records
+
+    def _extract_raw_pdf(self, input_files: list[Path], file_key: str) -> list[dict]:
+        print(f"[{file_key}] Sending raw PDF to LLM...")
+        prepared = []
+        for path in input_files:
+            prepared.append(PreparedFile(
+                source_path=path,
+                data=path.read_bytes(),
+                mime_type="application/pdf",
+                page_index=0,
+            ))
+        self._status.set_status(file_key, "prepare", "success")
+
+        print(f"[{file_key}] Extracting data from {len(prepared)} PDF file(s)...")
         try:
             records = self._feature.extractor.extract(prepared)
             self._status.set_status(file_key, "extract", "success")

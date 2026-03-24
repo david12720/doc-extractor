@@ -5,19 +5,28 @@ from ...abstractions.data_extractor import DataExtractor
 from ...abstractions.file_preparator import PreparedFile
 from ...abstractions.language_model import LanguageModel
 from ...config.settings import CHUNK_SIZE_PAGES
-from .prompt import PROMPT
+from .prompt import build_prompt
 
 
 class EmploymentContractExtractor(DataExtractor):
     def __init__(self, language_model: LanguageModel, chunk_size: int = CHUNK_SIZE_PAGES):
         self._llm = language_model
         self._chunk_size = chunk_size
+        self._expected_start_date: str | None = None
+
+    def set_expected_start_date(self, date: str | None) -> None:
+        self._expected_start_date = date
 
     def extract(self, prepared_files: list[PreparedFile]) -> list[dict]:
         if not prepared_files:
             return []
 
-        raw = self._llm.extract_from_images([pf.data for pf in prepared_files], PROMPT)
+        prompt = build_prompt(self._expected_start_date)
+
+        if prepared_files[0].mime_type == "application/pdf":
+            raw = self._llm.extract_from_pdf(prepared_files[0].data, prompt)
+        else:
+            raw = self._llm.extract_from_images([pf.data for pf in prepared_files], prompt)
         record = self._parse_response(raw)
 
         record["_llm_raw_text"] = raw

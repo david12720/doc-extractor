@@ -21,6 +21,12 @@ def cmd_run(args: argparse.Namespace) -> None:
     file_key = build_file_key(args.feature, args.input_files)
     output = args.output or (work_dir / "output" / f"{file_key}.json")
     pipeline = create_pipeline(args.feature, work_dir)
+
+    if args.expected_start_date and hasattr(pipeline, '_feature'):
+        extractor = pipeline._feature.extractor
+        if hasattr(extractor, 'set_expected_start_date'):
+            extractor.set_expected_start_date(args.expected_start_date)
+
     pipeline.run(args.input_files, output)
 
 
@@ -45,6 +51,7 @@ def main() -> None:
     run_parser.add_argument("input_files", nargs="+", type=Path, help="Input PDF/PNG file(s).")
     run_parser.add_argument("-o", "--output", type=Path, default=None, help="Output Excel path.")
     run_parser.add_argument("-w", "--work-dir", type=Path, default=Path("."), help="Working directory.")
+    run_parser.add_argument("--expected-start-date", type=str, default=None, help="Expected start date (DD/MM/YYYY) for validation.")
     run_parser.add_argument("--list-features", action="store_true", help="List registered features and exit.")
     run_parser.set_defaults(func=cmd_run)
 

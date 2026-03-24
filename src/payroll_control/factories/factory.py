@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from ..abstractions.file_preparator import PreparationPipeline
-from ..config.settings import CACHE_DIR_NAME, COST_LOG_FILE_NAME, GEMINI_MODEL, STATUS_FILE_NAME
+from ..config.settings import CACHE_DIR_NAME, COST_LOG_FILE_NAME, GEMINI_MODEL, GEMINI_MODEL_HANDWRITING, STATUS_FILE_NAME
 from ..core.excel_pipeline import ExcelPipeline
 from ..core.feature_registry import ExcelFeatureConfig, FeatureConfig, FeatureRegistry
 from ..core.pipeline import FeaturePipeline
@@ -17,6 +17,7 @@ from ..implementations.file_cache_manager import FileCacheManager
 from ..implementations.gemini_model import GeminiModel
 from ..implementations.json_status_tracker import JsonStatusTracker
 from ..implementations.image_enhancer import ImageEnhancer
+from ..implementations.line_remover import LineRemover
 from ..implementations.llm_schema_detector import LlmSchemaDetector
 from ..implementations.openpyxl_reader import OpenpyxlReader
 from ..implementations.page_deskewer import PageDeskewer
@@ -39,22 +40,25 @@ def bootstrap(work_dir: Path) -> None:
         raise RuntimeError("GEMINI_API_KEY environment variable is not set.")
 
     _llm = GeminiModel(api_key=api_key, model=GEMINI_MODEL, cost_logger=cost_logger, fallback_dir=fallback_dir)
+    llm_handwriting = GeminiModel(api_key=api_key, model=GEMINI_MODEL_HANDWRITING, cost_logger=cost_logger, fallback_dir=fallback_dir)
     base_mapper = XlwingsMapper()
 
     register_attendance(language_model=_llm, base_mapper=base_mapper)
     register_payslip(language_model=_llm, base_mapper=base_mapper)
     register_placeholder(language_model=_llm, base_mapper=base_mapper)
     register_pension(language_model=_llm, base_mapper=base_mapper)
-    register_employment_contract(language_model=_llm, base_mapper=base_mapper)
+    register_employment_contract(language_model=llm_handwriting, base_mapper=base_mapper)
     register_excel_attendance()
 
 
-def _build_preparation(feature_name: str) -> PreparationPipeline:
+def _default_steps() -> list:
+    return [PageRotator(), PageDeskewer(), LineRemover(), ImageEnhancer()]
+
+
+def _build_preparation(feature: FeatureConfig) -> PreparationPipeline:
     converter = PdfToImageConverter()
-    rotator = PageRotator()
-    deskewer = PageDeskewer()
-    enhancer = ImageEnhancer()
-    return PreparationPipeline(converter=converter, steps=[rotator, deskewer, enhancer])
+    steps = feature.preparation_steps if feature.preparation_steps is not None else _default_steps()
+    return PreparationPipeline(converter=converter, steps=steps)
 
 
 def create_pipeline(feature_name: str, work_dir: Path) -> FeaturePipeline | ExcelPipeline:
@@ -65,7 +69,7 @@ def create_pipeline(feature_name: str, work_dir: Path) -> FeaturePipeline | Exce
     if isinstance(feature, ExcelFeatureConfig):
         return _build_excel_pipeline(feature, cache, status)
 
-    preparation = _build_preparation(feature_name)
+    preparation = _build_preparation(feature)
     return FeaturePipeline(
         feature=feature,
         preparation=preparation,
