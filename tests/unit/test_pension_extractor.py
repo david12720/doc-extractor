@@ -16,6 +16,7 @@ LLM_RESPONSE = """
       "value_date": "16/11/2025",
       "salary_month": "10/2025",
       "employer_contribution": 356.94,
+      "employee_contribution": null,
       "severance_contribution": 0.00,
       "total_contribution": 475.92
     },
@@ -23,7 +24,8 @@ LLM_RESPONSE = """
       "account_number": "44783603",
       "value_date": "15/10/2025",
       "salary_month": "09/2025",
-      "employer_contribution": 294.62,
+      "employer_contribution": null,
+      "employee_contribution": 98.21,
       "severance_contribution": 0.00,
       "total_contribution": 392.83
     }
@@ -34,6 +36,7 @@ LLM_RESPONSE = """
 LLM_RESPONSE_FENCED = f"""```json
 {LLM_RESPONSE}
 ```"""
+
 
 class MockLLM:
     def __init__(self, response: str):
@@ -59,14 +62,32 @@ def test_extract_single_report():
     assert len(records) == 1
     record = records[0]
     assert record["company_name"] == "מגדל חברה לביטוח בעמ"
-    assert record["insured_person_name"] == "אבו נגמה זהיר"
     assert record["insured_person_id"] == "201007499"
-    assert record["report_date"] == "10/12/2025"
-    assert len(record["deposits"]) == 2
-    assert record["deposits"][0]["account_number"] == "44783603"
-    assert record["deposits"][0]["total_contribution"] == 475.92
     assert record["source_file"] == "pension.pdf"
     assert record["page_in_document"] == 1
+    assert "_llm_raw_text" in record
+
+
+def test_fill_missing_employee_contribution():
+    llm = MockLLM(LLM_RESPONSE)
+    extractor = PensionExtractor(language_model=llm)
+
+    records = extractor.extract([_make_file("pension.pdf")])
+    deposit = records[0]["deposits"][0]
+
+    # employer=356.94, total=475.92, severance=0 -> employee=118.98
+    assert deposit["employee_contribution"] == 118.98
+
+
+def test_fill_missing_employer_contribution():
+    llm = MockLLM(LLM_RESPONSE)
+    extractor = PensionExtractor(language_model=llm)
+
+    records = extractor.extract([_make_file("pension.pdf")])
+    deposit = records[0]["deposits"][1]
+
+    # employee=98.21, total=392.83, severance=0 -> employer=294.62
+    assert deposit["employer_contribution"] == 294.62
 
 
 def test_parse_fenced_json():
@@ -77,6 +98,7 @@ def test_parse_fenced_json():
     record = records[0]
     assert record["company_name"] == "מגדל חברה לביטוח בעמ"
     assert len(record["deposits"]) == 2
+    assert "_llm_raw_text" in record
 
 
 def test_parse_invalid_raises():

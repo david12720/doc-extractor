@@ -17,10 +17,11 @@ class PensionExtractor(DataExtractor):
         if not prepared_files:
             return []
 
-        # For pension, we expect one file at a time.
-        # The logic here is simplified compared to payslip, assuming one report per file.
         raw = self._llm.extract_from_images([pf.data for pf in prepared_files], PROMPT)
         record = self._parse_response(raw)
+
+        record["_llm_raw_text"] = raw  # pipeline will separate this to its own file
+        self._fill_missing_contributions(record)
 
         source_file = prepared_files[0].source_path.name
         record["source_file"] = source_file
@@ -29,13 +30,30 @@ class PensionExtractor(DataExtractor):
         return [record]
 
     def parse_cached_response(self, raw_text: str) -> list[dict]:
-        return [self._parse_response(raw_text)]
+        record = self._parse_response(raw_text)
+        record["_llm_raw_text"] = raw_text
+        self._fill_missing_contributions(record)
+        return [record]
+
+    def _fill_missing_contributions(self, record: dict) -> None:
+        for deposit in record.get("deposits", []):
+            total = deposit.get("total_contribution")
+            employer = deposit.get("employer_contribution")
+            employee = deposit.get("employee_contribution")
+            severance = deposit.get("severance_contribution") or 0.0
+
+            if total is None:
+                continue
+
+            if employee is None and employer is not None:
+                deposit["employee_contribution"] = round(total - employer - severance, 2)
+            elif employer is None and employee is not None:
+                deposit["employer_contribution"] = round(total - employee - severance, 2)
 
     def _parse_response(self, raw_text: str) -> dict:
         cleaned = self._extract_json_text(raw_text)
         parsed = json.loads(cleaned)
         if isinstance(parsed, list):
-            # The prompt asks for a single object, but the model might return a list with one item.
             if len(parsed) == 1:
                 return parsed[0]
             else:

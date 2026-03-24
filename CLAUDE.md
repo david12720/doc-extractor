@@ -82,6 +82,7 @@ The core PDF-to-JSON pipeline (preprocessing, chunking, LLM calls, caching, fall
 |---------|------|-------|-------------|
 | `attendance` | PDF | Scanned attendance sheets | Extracts daily entry/exit times per employee |
 | `payslip` | PDF | Scanned payslips | Extracts hours breakdown, wages, gross/net salary |
+| `pension` | PDF | Pension deposit reports | Extracts deposit history per insured person |
 | `excel_attendance` | Excel | Attendance workbooks | LLM-detected schema, extracts times + person ID |
 
 ## Cache & Status Keys
@@ -99,5 +100,6 @@ Default output paths also include the file stem: `output/{feature}_{file_stem}.j
 - Config constants live in `config/settings.py` and `config/pricing.py`
 - Pipeline outputs JSON; Excel mapping is a future separate step
 - Raw LLM responses are saved to `cache/fallback/` before any post-processing
+- If an extractor attaches `_llm_raw_text` to a record, the pipeline strips it and saves it as a separate `.llm_raw.txt` file next to the output JSON
 - Cost logging is non-fatal — failures are warned but don't crash the pipeline
 - Single cost log file (`api_cost_log.csv`) shared across all features and pipelines

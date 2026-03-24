@@ -27,7 +27,7 @@ _llm: GeminiModel | None = None
 
 
 def bootstrap(work_dir: Path) -> None:
-    """Create shared infrastructure and and register all features."""
+    """Create shared infrastructure and register all features."""
     global _llm
 
     cost_logger = CsvCostLogger(work_dir / COST_LOG_FILE_NAME)

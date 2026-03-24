@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 — 2026-03-24
+
+### Added
+- Pension feature: extract deposit history from pension report PDFs (company, insured person, monthly deposits)
+- Post-processing: programmatically fill missing employer/employee contribution when the other is present (total - known - severance)
+- LLM raw text saving: extractors can attach `_llm_raw_text` to records; the pipeline strips it and saves a separate `.llm_raw.txt` file next to the output JSON for debugging
+
+### Changed
+- Pension prompt instructs LLM to return null for fields not visible in source (extract only, never calculate)
+- Reverted run.py input_files back to Path type (was changed to str)
+- Reverted pdf_to_image_converter to use path.suffix (was changed to os.path.splitext)
+
 ## 0.3.0 — 2026-03-22
 
 ### Added

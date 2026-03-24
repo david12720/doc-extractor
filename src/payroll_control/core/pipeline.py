@@ -90,9 +90,27 @@ class FeaturePipeline:
     def _write_json(self, records: list[dict], output_path: Path, file_key: str) -> Path:
         json_path = output_path.with_suffix(".json")
         json_path.parent.mkdir(parents=True, exist_ok=True)
+
+        raw_texts = self._strip_raw_texts(records)
+        if raw_texts:
+            raw_path = json_path.with_suffix(".llm_raw.txt")
+            raw_path.write_text(
+                "\n---\n".join(raw_texts),
+                encoding="utf-8",
+            )
+            print(f"[{file_key}] Saved LLM raw response -> {raw_path}")
+
         json_path.write_text(
             json.dumps(records, ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
         print(f"[{file_key}] Saved {len(records)} record(s) -> {json_path}")
         return json_path
+
+    def _strip_raw_texts(self, records: list[dict]) -> list[str]:
+        raw_texts = []
+        for record in records:
+            raw = record.pop("_llm_raw_text", None)
+            if raw:
+                raw_texts.append(raw)
+        return raw_texts

@@ -24,7 +24,7 @@ Pipeline outputs JSON, not Excel. This avoids file-locking issues and makes the 
 Scanned PDFs go through: PDF→PNG (300 DPI) → Rotate (sideways detection via row/col variance) → Deskew (angle sweep -5° to +5°) → Enhance (contrast 4.0, sharpness 2.0). This chain dramatically improves LLM accuracy on faint handwriting.
 
 ### 6. Fallback response saving
-Raw LLM responses are saved to `cache/fallback/` before any post-processing. This prevents data loss if downstream steps fail.
+Raw LLM responses are saved to `cache/fallback/` before any post-processing. This prevents data loss if downstream steps fail. Additionally, extractors can attach `_llm_raw_text` to records — the pipeline strips it and writes a `.llm_raw.txt` file next to the output JSON, so the raw LLM output and the post-processed result are side-by-side for debugging.
 
 ### 7. File-based cache and status
 Simple JSON/text files for cache and status. No database needed. Enables resume capability — if a run crashes, re-running skips completed stages.

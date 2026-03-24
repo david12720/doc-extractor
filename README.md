@@ -16,6 +16,7 @@ python run.py run <feature> <input_files...> [-o output.json] [-w work_dir]
 python run.py run --list-features dummy  # list available features
 python run.py run attendance scanned_doc.pdf -o result.json
 python run.py run payslip payslip.pdf -o result.json
+python run.py run pension pension_report.pdf -o result.json
 python run.py run excel_attendance file1.xlsx file2.xlsx -o result.json
 python run.py history [-n N]  # show API cost history
 ```
