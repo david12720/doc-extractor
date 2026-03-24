@@ -18,10 +18,13 @@ def cmd_run(args: argparse.Namespace) -> None:
         print("Registered features:", ", ".join(FeatureRegistry.list_features()))
         return
 
-    file_key = build_file_key(args.feature, args.input_files)
-    output = args.output or (work_dir / "output" / f"{file_key}.json")
+    input_files = [Path(f) for f in args.input_files]
+    output_path = Path(args.output) if args.output else None
+
+    file_key = build_file_key(args.feature, input_files)
+    output = output_path or (work_dir / "output" / f"{file_key}.json")
     pipeline = create_pipeline(args.feature, work_dir)
-    pipeline.run(args.input_files, output)
+    pipeline.run(input_files, output)
 
 
 def cmd_history(args: argparse.Namespace) -> None:
@@ -42,8 +45,8 @@ def main() -> None:
     # run command
     run_parser = subparsers.add_parser("run", help="Run a feature pipeline.")
     run_parser.add_argument("feature", help="Feature name to run (e.g., 'attendance').")
-    run_parser.add_argument("input_files", nargs="+", type=Path, help="Input PDF/PNG file(s).")
-    run_parser.add_argument("-o", "--output", type=Path, default=None, help="Output Excel path.")
+    run_parser.add_argument("input_files", nargs="+", type=str, help="Input PDF/PNG file(s).")
+    run_parser.add_argument("-o", "--output", type=str, default=None, help="Output Excel path.")
     run_parser.add_argument("-w", "--work-dir", type=Path, default=Path("."), help="Working directory.")
     run_parser.add_argument("--list-features", action="store_true", help="List registered features and exit.")
     run_parser.set_defaults(func=cmd_run)

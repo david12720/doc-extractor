@@ -1,4 +1,5 @@
 import io
+import os
 from pathlib import Path
 
 import pypdfium2 as pdfium
@@ -15,7 +16,8 @@ class PdfToImageConverter(FileConverter):
     def convert(self, input_files: list[Path]) -> list[PreparedFile]:
         results: list[PreparedFile] = []
         for path in input_files:
-            suffix = path.suffix.lower()
+            _, suffix = os.path.splitext(str(path))
+            suffix = suffix.lower()
             if suffix == ".pdf":
                 results.extend(self._convert_pdf(path))
             elif suffix in (".png", ".jpg", ".jpeg"):

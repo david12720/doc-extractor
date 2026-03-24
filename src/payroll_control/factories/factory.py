@@ -10,6 +10,7 @@ from ..features.attendance.register import register as register_attendance
 from ..features.excel_attendance.register import register as register_excel_attendance
 from ..features.payslip.register import register as register_payslip
 from ..features.placeholder.register import register as register_placeholder
+from ..features.pension.register import register as register_pension
 from ..implementations.csv_cost_logger import CsvCostLogger
 from ..implementations.file_cache_manager import FileCacheManager
 from ..implementations.gemini_model import GeminiModel
@@ -26,7 +27,7 @@ _llm: GeminiModel | None = None
 
 
 def bootstrap(work_dir: Path) -> None:
-    """Create shared infrastructure and register all features."""
+    """Create shared infrastructure and and register all features."""
     global _llm
 
     cost_logger = CsvCostLogger(work_dir / COST_LOG_FILE_NAME)
@@ -42,6 +43,7 @@ def bootstrap(work_dir: Path) -> None:
     register_attendance(language_model=_llm, base_mapper=base_mapper)
     register_payslip(language_model=_llm, base_mapper=base_mapper)
     register_placeholder(language_model=_llm, base_mapper=base_mapper)
+    register_pension(language_model=_llm, base_mapper=base_mapper)
     register_excel_attendance()
 
 

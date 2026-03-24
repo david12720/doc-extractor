@@ -19,3 +19,5 @@ status.json
 .claude/
 .pytest_cache/
 .mypy_cache/
+pensia_pdfs/
+result.json
