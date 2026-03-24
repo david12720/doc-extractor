@@ -12,7 +12,7 @@ Here are the fields to extract:
 - `employee_name`: שם העובד — The employee's full name.
 - `employee_id`: תעודת זהות — The employee's ID number.
 - `employer_name`: שם המעסיק — The employer's name. Look for the company stamp at the bottom of the document as the primary source.
-- `start_date`: תאריך תחילת עבודה — Employment start date in DD/MM/YYYY format. This field appears in the main table of the contract, in the row labeled "תאריך תחילת עבודה" or "תחילת עבודה". Do NOT confuse it with the signature date or the notice date ("תאריך ההודעה") at the bottom of the document.{start_date_hint}
+- `start_date`: תאריך תחילת עבודה — Employment start date in DD/MM/YYYY format. Find the row in the main table whose label is one of: "תאריך תחילת עבודה", "תחילת עבודה", "מועד תחילת העבודה", "תאריך תחילה", "התחלת עבודה", "מתחיל עבודה". Read the handwritten or printed value in the cell directly adjacent to that label — that is the start date. Ignore any other dates on the page: signature dates, notice dates ("תאריך ההודעה"), document dates, or dates written near the bottom of the page.{start_date_hint}
 - `start_date_confidence`: מידת הוודאות — An integer from 0 to 100 representing your confidence in the start_date value. 100 = clearly legible, 0 = completely unreadable. If a hint was provided, indicate how well the hint matches what you see in the document.
 - `shortened_workday`: יום עבודה מקוצר — The shortened workday (e.g., "ערב שבת", "שישי", "ערב חג").
 - `weekly_rest_day`: יום מנוחה שבועי — The weekly rest day (e.g., "שבת", "ראשון").
@@ -43,7 +43,7 @@ Here is an example of the expected JSON output:
 ```
 """
 
-START_DATE_HINT = " הערה: על פי מקור חיצוני (תלוש שכר), תאריך תחילת העבודה הצפוי הוא {expected_date}. אמת מול מה שכתוב במסמך — אם מה שאתה רואה תואם, השתמש בתאריך הזה. אם אתה רואה בבירור תאריך אחר, החזר את מה שאתה רואה."
+START_DATE_HINT = " הערה: על פי מקור מהימן (תלוש שכר), תאריך תחילת העבודה של העובד הוא {expected_date}. השתמש בתאריך הזה כברירת מחדל. שנה אותו רק אם אתה רואה בבירור מוחלט תאריך שונה בשדה 'תאריך תחילת עבודה' בטבלה הראשית — לא בחותמת, לא בתאריך חתימה, ולא בתאריך הודעה. אם יש ספק כלשהו, העדף את התאריך מהרמז."
 NO_HINT = ""
 
 
