@@ -7,7 +7,7 @@ Payroll control tool: extract data from scanned documents (PDF/PNG) via LLM, str
 ## Architecture
 
 - **abstractions/**: 7 ABCs defining all contracts
-- **core/**: Business logic (FeaturePipeline, FeatureRegistry) — imports only from abstractions/
+- **core/**: Business logic (FeaturePipeline, ExcelPipeline, FeatureRegistry) — imports only from abstractions/
 - **implementations/**: Concrete classes (Gemini, image processing, file cache, etc.)
 - **features/<name>/**: Self-contained feature subpackages (prompt, model, extractor, mapper, register)
 - **factories/**: Wires everything together
@@ -73,7 +73,24 @@ The core PDF-to-JSON pipeline (preprocessing, chunking, LLM calls, caching, fall
 
 - Run tests: `python -m pytest tests/ -v`
 - CLI help: `python run.py --help`
-- Run a feature: `python run.py <feature_name> <input_files...> [-o output.json]`
+- Run a feature: `python run.py run <feature_name> <input_files...> [-o output.json]`
+- Cost history: `python run.py history [-n N]`
+
+## Registered Features
+
+| Feature | Type | Input | Description |
+|---------|------|-------|-------------|
+| `attendance` | PDF | Scanned attendance sheets | Extracts daily entry/exit times per employee |
+| `payslip` | PDF | Scanned payslips | Extracts hours breakdown, wages, gross/net salary |
+| `excel_attendance` | Excel | Attendance workbooks | LLM-detected schema, extracts times + person ID |
+
+## Cache & Status Keys
+
+Cache and status entries are keyed per input file(s), not per feature name:
+- Single file: `{feature}_{file_stem}` (e.g. `payslip_תלושי שכר`)
+- Multiple files: `{feature}_{hash}` (deterministic hash of sorted stems)
+
+Default output paths also include the file stem: `output/{feature}_{file_stem}.json`
 
 ## Conventions
 
@@ -83,3 +100,4 @@ The core PDF-to-JSON pipeline (preprocessing, chunking, LLM calls, caching, fall
 - Pipeline outputs JSON; Excel mapping is a future separate step
 - Raw LLM responses are saved to `cache/fallback/` before any post-processing
 - Cost logging is non-fatal — failures are warned but don't crash the pipeline
+- Single cost log file (`api_cost_log.csv`) shared across all features and pipelines

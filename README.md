@@ -12,10 +12,12 @@ export GEMINI_API_KEY=your_key_here
 ## Usage
 
 ```bash
-python run.py <feature> <input_files...> [-o output.json] [-w work_dir]
-python run.py --list-features dummy  # list available features
-python run.py attendance scanned_doc.pdf -o result.json
-python run.py excel_attendance file1.xlsx file2.xlsx -o result.json
+python run.py run <feature> <input_files...> [-o output.json] [-w work_dir]
+python run.py run --list-features dummy  # list available features
+python run.py run attendance scanned_doc.pdf -o result.json
+python run.py run payslip payslip.pdf -o result.json
+python run.py run excel_attendance file1.xlsx file2.xlsx -o result.json
+python run.py history [-n N]  # show API cost history
 ```
 
 ## Tests
