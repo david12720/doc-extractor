@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "payroll-control"
+version = "0.1.0"
+description = "Payroll control: extract data from scanned documents via LLM"
+requires-python = ">=3.11"
+dependencies = [
+    "pdf-pipeline",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

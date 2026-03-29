@@ -1,0 +1,2 @@
+# Don't read sibling projects when working on the library
+../../projects/

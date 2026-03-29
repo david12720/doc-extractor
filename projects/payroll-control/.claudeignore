@@ -1,0 +1,2 @@
+# Don't read sibling projects or libs source when working on this project
+../../libs/
