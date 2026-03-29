@@ -31,7 +31,7 @@ FIELDS TO EXTRACT:
 
 NOTE ON ACHIEVEMENT BONUSES: Only extract bonuses related to individual player performance — goals (שערים/גולים), assists (אסיסטים/בישולים), and penalties (פנדלים/בעיטות עונשין). Do NOT extract team-level achievement bonuses like winning the league (אליפות), cup (גביע), or European qualification (הישג אירופאי).
 
-NOTE ON TEAM NAMES: When writing team names that contain the Hebrew abbreviation symbol, use the Hebrew gershayim character (״) instead of a straight double quote (") or escaped quote. For example: בית״ר ירושלים, not בית"ר ירושלים.
+NOTE ON HEBREW ABBREVIATIONS: Wherever a Hebrew word contains an abbreviation mark (גרשיים), use the Hebrew gershayim character (״, U+05F4) instead of a straight double quote (") or escaped quote. This applies to any word in the output — team names, titles, or any other abbreviated Hebrew word. For example: בית״ר ירושלים, בע״מ, ת״א — not בית"ר, בע"מ, ת"א.
 
 OUTPUT FORMAT — return a single JSON object:
 

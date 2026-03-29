@@ -76,7 +76,7 @@ python -m pytest tests/ -v
 - **Season filter**: Prompt instructs LLM to extract only 2025/26 data
 - **Achievement exclusion**: Only individual performance bonuses (goals/assists/penalties) — no team-level awards
 - **`points_bonus_total`**: Computed in extractor (`per_point × max_points`), not by LLM
-- **Gershayim**: Prompt instructs LLM to use `״` (U+05F4) in team names, e.g. `בית״ר ירושלים`
+- **Gershayim**: Prompt instructs LLM to use `״` (U+05F4) in any Hebrew abbreviated word, e.g. `בית״ר`, `בע״מ`, `ת״א`
 - **Prompt examples**: Use fictional values to prevent LLM from copying them
 
 ## Cache & Status
