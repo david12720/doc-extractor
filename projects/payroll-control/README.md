@@ -25,6 +25,16 @@ python run.py run excel_attendance file1.xlsx file2.xlsx -o result.json
 python run.py history [-n N]  # show API cost history
 ```
 
+## Features
+
+| Feature | Type | Input | Description |
+|---------|------|-------|-------------|
+| `attendance` | PDF | Scanned attendance sheets | Daily entry/exit times per employee |
+| `payslip` | PDF | Scanned payslips | Hours breakdown, wages, gross/net salary |
+| `pension` | PDF | Pension deposit reports | Deposit history per insured person |
+| `employment_contract` | PDF | Scanned Hebrew employment contracts | Contract terms: work schedule, payment type, overtime, rest day. Always uses Cloud Vision OCR for handwriting. |
+| `excel_attendance` | Excel | Attendance workbooks | LLM-detected schema, extracts times + person ID |
+
 ## Tests
 
 ```bash

@@ -1,98 +1,59 @@
 # Players Contract — Claude Code Instructions
 
-## Project Overview
+## Overview
 
-Extract financial compensation data from Israeli Football Association (IFA) player contracts (PDF) via LLM. Extracts salary, bonuses, housing/car allowances — excludes achievement-based bonuses. Uses the `pdf_pipeline` shared library.
+Extract financial compensation from IFA player contracts (PDF) via LLM. Uses `pdf_pipeline` shared library.
 
-## Structure Map
+## Structure
 
 ```
-projects/players-contract/
-├── CLAUDE.md                          # This file — project instructions
-├── PLAN.md                            # Implementation plan and field mapping
-├── pyproject.toml                     # Package config (depends on pdf-pipeline)
-├── run.py                             # CLI entry point (run, history commands)
-├── src/
-│   └── players_contract/
-│       ├── __init__.py
-│       ├── factories/
-│       │   ├── __init__.py
-│       │   └── factory.py             # bootstrap() — wires implementations; create_pipeline()
-│       └── features/
-│           ├── __init__.py
-│           └── contract_salary/       # Feature: extract salary data from player contracts
-│               ├── __init__.py
-│               ├── model.py           # PlayerContractSalary dataclass
-│               ├── prompt.py          # LLM prompt (Hebrew, season-filtered)
-│               ├── extractor.py       # ContractSalaryExtractor(DataExtractor)
-│               ├── mapper.py          # ContractSalaryMapper(ExcelMapper)
-│               └── register.py        # register() → FeatureRegistry
-└── tests/
-    ├── __init__.py
-    └── unit/
-        ├── __init__.py
-        └── test_contract_salary_extractor.py  # Mock-based unit tests
+src/players_contract/
+  factories/   Wires pdf_pipeline implementations to features
+  features/    contract_salary — IFA player contract extraction (2025/26 season)
+run.py         CLI entry point
 ```
+
+## Key Files
+
+| File | Role |
+|------|------|
+| `factories/factory.py` | `bootstrap()` — wires all dependencies; `create_pipeline()` |
+| `features/contract_salary/extractor.py` | ContractSalaryExtractor — computes yearly fields, resolves allowances |
+| `features/contract_salary/prompt.py` | LLM prompt — season filter, person classification, gershayim |
+| `run.py` | CLI + RTL filename recovery |
 
 ## Dependency Rule
 
 ```
 run.py → factories/ → pdf_pipeline.implementations.*
                      → pdf_pipeline.core.*
-         features/   → pdf_pipeline.abstractions.* (ONLY — never implementations)
+         features/  → pdf_pipeline.abstractions.* (ONLY)
 ```
+
+## Key Behaviours
+
+- **`raw_pdf=True`**: raw PDF to LLM — contracts are mostly typed text
+- **Handwriting model**: `GEMINI_MODEL_HANDWRITING` — player ID and team name are handwritten
+- **Season filter**: LLM extracts only 2025/26 data
+- **Person classification**: `person_type` ∈ `{"player", "coach", "other"}`; `person_role` holds the specific role
+- **Computed fields**: `*_yearly` and `points_bonus_total` computed in extractor, not by LLM
+- **Achievement exclusion**: individual performance bonuses only — no team-level awards
+- **Gershayim**: `״` (U+05F4) in Hebrew abbreviated words
+- **RTL filename recovery**: `run.py` uses `Counter` multiset matching for RTL-mangled Hebrew filenames
 
 ## Commands
 
 ```bash
-# Install (editable, for development)
-pip install -e ../../libs/pdf-pipeline
-pip install -e .
-
-# Run extraction
+pip install -e ../../libs/pdf-pipeline && pip install -e .
 python run.py run contract_salary <input.pdf> [-o output.json] [--ocr]
-
-# List features
-python run.py run contract_salary --list-features
-
-# Cost history
 python run.py history [-n N]
-
-# Run tests
 python -m pytest tests/ -v
 ```
 
-## Registered Features
-
-| Feature | Type | Input | Description |
-|---------|------|-------|-------------|
-| `contract_salary` | PDF | IFA player contracts | Salary, bonuses, housing, car for season 2025/26 |
-
-## Key Design Decisions
-
-- **`raw_pdf=True`**: Sends raw PDF to LLM (no image conversion) — contracts are mostly typed
-- **Handwriting model**: Uses `GEMINI_MODEL_HANDWRITING` for handwritten fields (player name, ID, team)
-- **Season filter**: Prompt instructs LLM to extract only 2025/26 data
-- **Achievement exclusion**: Only individual performance bonuses (goals/assists/penalties) — no team-level awards
-- **`points_bonus_total`**: Computed in extractor (`per_point × max_points`), not by LLM
-- **Gershayim**: Prompt instructs LLM to use `״` (U+05F4) in any Hebrew abbreviated word, e.g. `בית״ר`, `בע״מ`, `ת״א`
-- **Prompt examples**: Use fictional values to prevent LLM from copying them
-
 ## Cache & Status
 
-To force a full re-run, delete both cache and status:
-```powershell
-rm cache, status.json -Recurse -Force
-```
-`status.json` is in the working directory (not inside `cache/`) and must be deleted separately.
+Delete both to force re-run: `rm cache, status.json -Recurse -Force`
 
 ## Adding a New Feature
 
-Create `src/players_contract/features/<name>/` with:
-1. `model.py` — dataclass for extracted fields
-2. `prompt.py` — LLM prompt
-3. `extractor.py` — `DataExtractor` subclass (imports from `pdf_pipeline.abstractions`)
-4. `mapper.py` — `ExcelMapper` subclass
-5. `register.py` — registers with `FeatureRegistry`
-
-Then add the registration call in `factories/factory.py:bootstrap()`.
+Five files in `src/players_contract/features/<name>/`: `model.py`, `prompt.py`, `extractor.py`, `mapper.py`, `register.py`. Register in `factories/factory.py:bootstrap()`.
