@@ -48,11 +48,14 @@ def bootstrap(work_dir: Path, enable_ocr: bool = False) -> None:
         from pdf_pipeline.implementations.cloud_vision_ocr import CloudVisionOcr
         ocr_engine = CloudVisionOcr(api_key=api_key, cost_logger=cost_logger)
 
+    from pdf_pipeline.implementations.cloud_vision_ocr import CloudVisionOcr
+    contract_ocr = CloudVisionOcr(api_key=api_key, cost_logger=cost_logger)
+
     register_attendance(language_model=_llm, base_mapper=base_mapper)
     register_payslip(language_model=_llm, base_mapper=base_mapper)
     register_placeholder(language_model=_llm, base_mapper=base_mapper)
     register_pension(language_model=_llm, base_mapper=base_mapper)
-    register_employment_contract(language_model=llm_handwriting, base_mapper=base_mapper, ocr_engine=ocr_engine)
+    register_employment_contract(language_model=llm_handwriting, base_mapper=base_mapper, ocr_engine=contract_ocr)
     register_excel_attendance()
 
 

@@ -12,13 +12,13 @@ Here are the fields to extract:
 - `employee_name`: שם העובד — The employee's full name.
 - `employee_id`: תעודת זהות — The employee's ID number.
 - `employer_name`: שם המעסיק — The employer's name. Look for the company stamp at the bottom of the document as the primary source.
-- `start_date`: תאריך תחילת עבודה — Employment start date in DD/MM/YYYY format. Find the row in the main table whose label is one of: "תאריך תחילת עבודה", "תחילת עבודה", "מועד תחילת העבודה", "תאריך תחילה", "התחלת עבודה", "מתחיל עבודה". Read the handwritten or printed value in the cell directly adjacent to that label — that is the start date. Ignore any other dates on the page: signature dates, notice dates ("תאריך ההודעה"), document dates, or dates written near the bottom of the page.{start_date_hint}
+- `start_date`: תאריך תחילת עבודה — Employment start date in DD/MM/YYYY format. This date is typically handwritten at the TOP of the form, in the header area near the employee name and ID — NOT in the main table. Look for a date field labeled "תאריך תחילת עבודה" or "תחילת עבודה" in the top section of the document. IGNORE all other dates: signature dates at the bottom, notice dates ("תאריך ההודעה"), document print dates, and dates in the stamp/seal.{start_date_hint}
 - `start_date_confidence`: מידת הוודאות — An integer from 0 to 100 representing your confidence in the start_date value. 100 = clearly legible, 0 = completely unreadable. If a hint was provided, indicate how well the hint matches what you see in the document.
-- `shortened_workday`: יום עבודה מקוצר — The shortened workday (e.g., "ערב שבת", "שישי", "ערב חג").
+- `shortened_workday`: יום עבודה מקוצר — The shortened workday. Common values: "ערב שבת", "שישי", "ערב חג". This field is often filled with "על פי הדין" — if you see that phrase (handwritten, stamped, or as a checkmark next to the option), return "על פי הדין". Do NOT return null if "על פי הדין" is written in the cell.
 - `weekly_rest_day`: יום מנוחה שבועי — The weekly rest day (e.g., "שבת", "ראשון").
 - `employment_type`: סוג העסקה — Employment type (e.g., "משרה מלאה", "משרה חלקית").
 - `overtime_calculation_after`: חישוב שעות נוספות אחרי — The threshold after which overtime is calculated. Transcribe as a string exactly as written (e.g., "8 שעות", "8.6 שעות").
-- `payment_type`: אופי התשלום — Payment type: hourly (שעתי) or global (גלובלי). Return the term as written in the document.
+- `payment_type`: אופי התשלום — Payment type. Possible values: "שעתי" (hourly), "חודשי" (monthly), or "גלובלי" (global/salaried). The contract form typically lists these as options where one is circled, underlined, or marked. If both options appear marked and you cannot determine which one is the intended choice, return both separated by a slash (e.g., "שעתי/חודשי").
 - `workdays_per_week`: מספר ימי עבודה בשבוע — Number of workdays per week. Return as an integer.
 - `wage_rate`: תעריף שכר — The wage rate as a number (e.g., 35.50). This is the base rate the employee is paid. Extract the numeric value from the salary table in the contract.
 - `wage_rate_type`: סוג תעריף — The unit of the wage rate. Must be one of: "שעתי" (hourly), "יומי" (daily), "חודשי" (monthly). Determine from the contract which type applies based on the payment structure described (e.g., if the contract specifies an hourly rate, return "שעתי").
