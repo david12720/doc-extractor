@@ -1,4 +1,4 @@
-# Arye — Documentation Ownership
+# doc-extractor — Documentation Ownership
 
 **Rule:** the agent that owns the code owns the docs for that code. Update docs in the same commit as the code change.
 

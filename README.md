@@ -1,4 +1,4 @@
-# Arye — Document Data Extraction
+# doc-extractor — Document Data Extraction
 
 Extract structured data from scanned documents (PDF/PNG) and Excel files using LLMs, output structured JSON.
 
