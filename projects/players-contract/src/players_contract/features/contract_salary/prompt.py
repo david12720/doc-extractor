@@ -23,8 +23,7 @@ FIELDS TO EXTRACT:
   - Use "other" for all non-playing, non-coaching roles — including medical and support staff such as: פיזיותרפיסט, רופא, מאסז'יסט, מנהל ספורטיבי, and any other role not covered above.
 - `person_role`: תפקיד ספציפי — The specific role within the category:
   - If `person_type` is "player": return null.
-  - If `person_type` is "coach": return one of "head coach", "assistant coach", "team manager", "fitness coach", "goalkeeping coach".
-  - If `person_type` is "other": return the specific profession in English (e.g., "physiotherapist", "doctor", "masseur") if detectable, otherwise return "other".
+  - If `person_type` is "coach" or "other": return the exact role text as written in the source Hebrew document — do NOT translate. Examples: "עוזר מאמן", "מאמן שוערים", "מאמן כושר", "מנהל קבוצה", "פיזיותרפיסט", "רופא", "מאסז׳יסט", "מנהל ספורטיבי". If no specific role is stated, return null.
 - `employment_months`: מספר חודשי העסקה — The total number of months the player is employed under this contract for season 2025/26. Look for the contract duration or payment period (e.g., "10 חודשים", "משולם ב-10 תשלומים"). Return as an integer or null.
 - `base_salary_monthly`: שכר בסיס חודשי — The base monthly salary for season 2025/26. Look in the salary section (המשכורת הבסיסית הכוללת) or the compensation section (שכר בסיס). Return as a number without currency symbols.
 - `housing_allowance_monthly`: שכר דירה חודשי — Monthly housing allowance. If the contract mentions housing but states no amount, return true. If no housing allowance is mentioned at all, return null.
@@ -45,7 +44,7 @@ OUTPUT FORMAT — return a single JSON object:
   "team_name": "הפועל באר שבע",
   "season": "2025/26",
   "person_type": "coach",
-  "person_role": "assistant coach",
+  "person_role": "עוזר מאמן",
   "employment_months": 10,
   "base_salary_monthly": 45000,
   "housing_allowance_monthly": 4000,
