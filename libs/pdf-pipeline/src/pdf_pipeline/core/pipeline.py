@@ -24,10 +24,6 @@ class FeaturePipeline:
     def run(self, input_files: list[Path], output_path: Path) -> Path:
         file_key = build_file_key(self._feature.name, input_files)
 
-        if self._status.is_complete(file_key):
-            print(f"[{file_key}] All stages complete -- skipping.")
-            return output_path
-
         records = self._try_load_from_cache(file_key)
         if records is None:
             records = self._extract(input_files, file_key)
