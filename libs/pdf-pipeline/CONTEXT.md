@@ -43,7 +43,7 @@ Raw LLM responses are saved to `cache/fallback/` before any post-processing. If 
 
 ## 6. File-based cache and status
 
-Cache and status use simple JSON and text files on disk. No database is required. This enables resume capability: if a run crashes, re-running automatically skips completed stages based on status entries. Cache keys are derived from feature name and input file stems.
+Cache and status use simple JSON and text files on disk. No database is required. This enables resume capability: re-running an already-extracted file hydrates records from the JSON cache and writes them to whatever output path the caller passes — no LLM call is made. The status file tracks per-stage success/failure for observability and debugging. Cache keys are derived from feature name and input file stems.
 
 ## 7. Dual pipeline architecture
 

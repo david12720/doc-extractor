@@ -10,6 +10,7 @@ Extract financial compensation from IFA player contracts (PDF) via LLM. Uses `pd
 src/players_contract/
   factories/   Wires pdf_pipeline implementations to features
   features/    contract_salary — IFA player contract extraction (2025/26 season)
+  export/      JSON → Hebrew RTL Excel mappers (decoupled from pdf_pipeline)
 run.py         CLI entry point
 ```
 
@@ -17,10 +18,12 @@ run.py         CLI entry point
 
 | File | Role |
 |------|------|
-| `factories/factory.py` | `bootstrap()` — wires all dependencies; `create_pipeline()` |
+| `factories/factory.py` | `bootstrap()` — wires all dependencies; `create_pipeline()`; `create_excel_mapper()` |
 | `features/contract_salary/extractor.py` | ContractSalaryExtractor — computes yearly fields, resolves allowances |
 | `features/contract_salary/prompt.py` | LLM prompt — season filter, person classification, gershayim |
-| `run.py` | CLI + RTL filename recovery |
+| `export/excel_mapper.py` | ExcelMapper ABC (project-local; pdf_pipeline stays Excel-free) |
+| `export/contract_salary_mapper.py` | Hebrew header/value translation, RTL layout, styling, number formats |
+| `run.py` | CLI (`--base-dir` batch mode + RTL filename recovery) |
 
 ## Dependency Rule
 
@@ -46,9 +49,12 @@ run.py → factories/ → pdf_pipeline.implementations.*
 ```bash
 pip install -e ../../libs/pdf-pipeline && pip install -e .
 python run.py run contract_salary <input.pdf> [-o output.json] [--ocr]
+python run.py run contract_salary -b <dir>           # batch top-level *.pdf, one LLM call per file
 python run.py history [-n N]
 python -m pytest tests/ -v
 ```
+
+Every `run` invocation also writes an `.xlsx` next to the JSON via `create_excel_mapper`.
 
 ## Cache & Status
 
@@ -56,4 +62,4 @@ Delete both to force re-run: `rm cache, status.json -Recurse -Force`
 
 ## Adding a New Feature
 
-Five files in `src/players_contract/features/<name>/`: `model.py`, `prompt.py`, `extractor.py`, `mapper.py`, `register.py`. Register in `factories/factory.py:bootstrap()`.
+Four files in `src/players_contract/features/<name>/`: `model.py`, `prompt.py`, `extractor.py`, `register.py`. Register in `factories/factory.py:bootstrap()`. If the feature needs Excel output, add a mapper under `src/players_contract/export/` and register it in `_EXCEL_MAPPERS` in `factories/factory.py`.
